@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "teleinfo": "0.2.0",
+    "express": "*",
+    "ejs": "*",
+    "mysql": "*"
+  }
+}

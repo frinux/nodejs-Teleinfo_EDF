@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Live</title>
+		<script src="https://cdn.socket.io/socket.io-1.2.1.js"></script>
+		<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js"></script>
+		<% include css %>
+    </head>
+ 
+    <body>
+
+    	<% include menu %>
+
+        <h1>Puissance instantanée : <span id="pinst"></span> W</h1>	
+		<meter id="pmeter" max=0 min=0 value=0 high=0 low=0 optimum=0></meter>
+		<div id="chartContainer"></div>
+
+	<script>
+
+		window.onload = function () {
+
+			var dps = []; //data
+			var dataLength = 20; // number of dataPoints visible at any point
+		    var chart = new CanvasJS.Chart("chartContainer",
+		    {
+		      axisX:{  
+	              valueFormatString: "H:mm:ss"
+		      },
+		      data: [{
+		        type: "area",
+		        dataPoints: dps
+		      }
+		      ]
+		    });
+
+			var socket = io.connect('http://192.168.0.101:8080');
+			socket.on('message', function(message) {
+				$('#pinst').html(message.pinst);
+				$('#pmeter').attr('max', message.IMAX*230).attr('value', message.pinst);
+
+				if (message.pinst != null) {
+
+					dps.push({
+						x: new Date(),
+						y: message.pinst
+					});	
+
+					if (dps.length > dataLength) {
+						dps.shift();				
+					}
+					
+					chart.render();	
+				}
+			});
+      }
+
+	</script>
+
+    </body>
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Graph</title>
+		<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.4.1/canvas.min.js"></script>
+		<% include css %>
+    </head>
+ 
+    <body>
+
+    <% include menu %>
+
+	<form method="post" id="dateform">
+		Du <input type="date"/>
+		<input type="time"/>
+		Au <input type="date"/>
+		<input type="time"/>
+		<input type="submit"/>
+
+	</form>
+
+		<div id="chartContainer"></div>
+
+	<script>
+
+		$(document).ready(function() {
+
+			$('#dateform').on('submit', function(e) {
+				e.preventDefault();
+				var $this = $(this);
+				$.ajax({
+				  type: "POST",
+				  url: "http://192.168.0.101:8080/graph_hourly",
+				  data: $this.serialize(),
+				  success: function(result) {
+
+			  		//Build dataPoints
+			  		var hchc = JSON.stringify(result);
+			  		var hchp = JSON.stringify(result);
+
+			  		//Set right data index names
+		  			var strHCHC = hchc.replace(/"y1":/g, '"y":');
+    				var strHCHP = hchp.replace(/"y2":/g, '"y":');
+
+    				//Special colors
+    				strHCHC = strHCHC.replace(/"wetrue"/g, '"#71BBC5"')
+    				strHCHC = strHCHC.replace(/"wefalse"/g, '"#369EAD"')
+    				strHCHC = strHCHC.replace(/"isweekend":/g, '"color":');
+    				strHCHP = strHCHP.replace(/"wetrue"/g, '"#D47D7A"')
+    				strHCHP = strHCHP.replace(/"wefalse"/g, '"#C24642"')
+    				strHCHP = strHCHP.replace(/"isweekend":/g, '"color":');
+
+		  			var chart = new CanvasJS.Chart("chartContainer",
+				    {
+				    	zoomEnabled: true,
+				    	axisX:{  
+				        	valueFormatString: "DD/MM/YYYY HH:mm"
+						},
+						data: [{
+					        type: "stackedColumn",
+					        xValueType: "dateTime",
+					        dataPoints: JSON.parse(strHCHC)
+					      },
+					      {
+					        type: "stackedColumn",
+					        xValueType: "dateTime",
+					        dataPoints: JSON.parse(strHCHP)
+					      }
+				      	]
+				    });
+
+				  	chart.render();
+				  }
+				});
+			});
+		});
+
+	</script>
+
+    </body>
+</html>
