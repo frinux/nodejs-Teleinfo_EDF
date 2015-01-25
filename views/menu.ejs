@@ -1,1 +1,7 @@
-<nav><ul><li><a href="/">Live</a></li><li><a href="/graph_daily">Graph jour</a></li><li><a href="/graph_hourly">Graph heure</a></li></ul></nav>
+<nav role="navigation">
+	<ul>
+		<li <%= (menu_item_active == "live") ? 'class=active' : '' %> ><a href="/">Temps réel</a></li>
+		<li <%= (menu_item_active == "graph_daily") ? 'class=active' : '' %> ><a href="/graph_daily">Graph jour</a></li>
+		<li <%= (menu_item_active == "graph_hourly") ? 'class=active' : '' %> ><a href="/graph_hourly">Graph heure</a></li>
+	</ul>
+</nav>

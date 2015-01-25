@@ -2,7 +2,9 @@
   "dependencies": {
     "teleinfo": "0.2.0",
     "express": "*",
+    "body-parser": "*",
     "ejs": "*",
-    "mysql": "*"
+    "mysql": "*",
+    "socket.io": "*"
   }
 }

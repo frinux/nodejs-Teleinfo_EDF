@@ -12,28 +12,38 @@
 
     <% include menu %>
 
-	<form method="post" id="dateform">
-		Du <input type="date"/>
-		<input type="time"/>
-		Au <input type="date"/>
-		<input type="time"/>
-		<input type="submit"/>
+    <h1>Consommation par heure</h1>
 
+	<form method="post" id="dateform">
+		<label for="from_date">Du</label> <input type="date" name="from_date"/>
+		<input type="time" name="from_time"/>
+		<label for="to_date">Au</label> <input type="date" name="to_date"/>
+		<input type="time" name="to_time"/>
+		<input type="submit"/>
+		<% include ajax_loader %>
 	</form>
 
-		<div id="chartContainer"></div>
+	<div id="chartContainer"></div>
 
 	<script>
 
 		$(document).ready(function() {
 
+			//default to_date value is today
+			$("input[name='to_date']")[0].valueAsDate = new Date();
+			$("input[name='to_time']")[0].valueAsDate = new Date(); //@FIXME
+
 			$('#dateform').on('submit', function(e) {
 				e.preventDefault();
-				var $this = $(this);
+				var postData = $(this).serializeArray();
+
+				$("#chartContainer").empty();
+				$("#dateform .ajaxloader").show();
+
 				$.ajax({
 				  type: "POST",
-				  url: "http://192.168.0.101:8080/graph_hourly",
-				  data: $this.serialize(),
+				  url: "/graph_hourly",
+				  data: postData,
 				  success: function(result) {
 
 			  		//Build dataPoints
@@ -44,7 +54,7 @@
 		  			var strHCHC = hchc.replace(/"y1":/g, '"y":');
     				var strHCHP = hchp.replace(/"y2":/g, '"y":');
 
-    				//Special colors
+    				//Special colors for week end
     				strHCHC = strHCHC.replace(/"wetrue"/g, '"#71BBC5"')
     				strHCHC = strHCHC.replace(/"wefalse"/g, '"#369EAD"')
     				strHCHC = strHCHC.replace(/"isweekend":/g, '"color":');
@@ -71,6 +81,7 @@
 				      	]
 				    });
 
+					$("#dateform .ajaxloader").hide();
 				  	chart.render();
 				  }
 				});
