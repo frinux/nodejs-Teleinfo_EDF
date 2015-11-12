@@ -28,7 +28,7 @@ function getTeleinfo () {
 
     foreach ($messages as $key => $message) {
       $message = explode (' ', $message, 3); // on separe l'etiquette, la valeur et la somme de controle de chaque message
-      if(validateTrame($message)) {
+      if(!empty($message[0]) && !empty($message[1])) {
         $etiquette = $message[0];
         $valeur    = $message[1];
         $datas[$etiquette] = $valeur; // on stock les etiquettes et les valeurs de l'array datas
@@ -60,8 +60,8 @@ function validateTrame($trame) {
 
 
 $data = array();
-//On boucle pour éviter les trames vides
-while (!isset($data['ADCO'])) {
+//On boucle pour éviter les trames non valides
+while (!validateTrame($data)) {
 	$data = getTeleinfo();
 }
 
