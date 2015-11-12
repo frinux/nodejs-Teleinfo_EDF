@@ -28,7 +28,7 @@ function getTeleinfo () {
 
     foreach ($messages as $key => $message) {
       $message = explode (' ', $message, 3); // on separe l'etiquette, la valeur et la somme de controle de chaque message
-      if(!empty($message[0]) && !empty($message[1])) {
+      if(validateTrame($message)) {
         $etiquette = $message[0];
         $valeur    = $message[1];
         $datas[$etiquette] = $valeur; // on stock les etiquettes et les valeurs de l'array datas
@@ -39,6 +39,23 @@ function getTeleinfo () {
 
     return $datas;
 
+}
+
+//
+// returns if the received message is valid
+//
+function validateTrame($trame) {
+  if (!array_key_exists('ADCO', $trame) || empty ($trame['ADCO'])) { return false; }
+  if (!array_key_exists('OPTARIF', $trame) || empty ($trame['OPTARIF'])) { return false; }
+  if (!array_key_exists('ISOUSC', $trame) || empty ($trame['ISOUSC'])) { return false; }
+  if (!array_key_exists('HCHC', $trame) || empty ($trame['HCHC'])) { return false; }
+  if (!array_key_exists('HCHP', $trame) || empty ($trame['HCHP'])) { return false; }
+  if (!array_key_exists('PTEC', $trame) || empty ($trame['PTEC'])) { return false; }
+  if (!array_key_exists('IINST', $trame) || empty ($trame['IINST'])) { return false; }
+  if (!array_key_exists('IMAX', $trame) || empty ($trame['IMAX'])) { return false; }
+  if (!array_key_exists('HHPHC', $trame) || empty ($trame['HHPHC'])) { return false; }
+
+  return true;
 }
 
 
