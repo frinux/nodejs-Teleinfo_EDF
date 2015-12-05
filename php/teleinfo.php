@@ -81,7 +81,7 @@ function validateTrame($trame) {
 
 
 $data = array();
-//On boucle pour éviter les trames non valides
+//Loop to avoid invalid data
 while (!validateTrame($data)) {
 	$data = getTeleinfo();
 }
@@ -96,9 +96,11 @@ if (SAVE_IN_MYSQL_DATABASE) {
   $lastRow = $stmt->fetch();
 
   //Calculate delta
-  $data['HCHC_delta'] = $data['HCHC'] - $lastRow['HCHC'];
-  $data['HCHP_delta'] = $data['HCHP'] - $lastRow['HCHP'];
+  $calculated_data = array();
+  $calculated_data['HCHC_delta'] = $data['HCHC'] - $lastRow['HCHC'];
+  $calculated_data['HCHP_delta'] = $data['HCHP'] - $lastRow['HCHP'];
 
+  //Insert data
   $stmt = $db->prepare("
     INSERT INTO raw_data(ADCO,OPTARIF,ISOUSC,HCHC,HCHP,PTEC,IINST,IMAX,HHPHC,timestamp,HCHC_delta,HCHP_delta) 
     VALUES(:ADCO,:OPTARIF,:ISOUSC,:HCHC,:HCHP,:PTEC,:IINST,:IMAX,:HHPHC,:timestamp,:HCHC_delta,:HCHP_delta)
@@ -115,15 +117,15 @@ if (SAVE_IN_MYSQL_DATABASE) {
       ':IMAX' => $data['IMAX'], 
       ':HHPHC' => $data['HHPHC'], 
       ':timestamp' => $data['timestamp'],
-      ':HCHC_delta' => $data['HCHC_delta'],
-      ':HCHP_delta' => $data['HCHP_delta']
+      ':HCHC_delta' => $calculated_data['HCHC_delta'],
+      ':HCHP_delta' => $calculated_data['HCHP_delta']
     )
   );
 }
 
 if (SAVE_IN_JSON_FILES) {
 
-  file_put_contents(JSON_DIRECTORY.$data['unix_timestamp'].'json', json_encode($data));
+  file_put_contents(JSON_DIRECTORY.$data['unix_timestamp'].'.json', json_encode($data));
 
 }
 
