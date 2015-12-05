@@ -1,11 +1,31 @@
 <?php
 
 //
+//  Parameters
+//
+
+//TELEINFO
+define("TELEINFO_SOURCE", '/dev/ttyAMA0');
+
+//MySQL
+define("SAVE_IN_MYSQL_DATABASE", true);
+define("MYSQL_PDO", 'mysql:host=127.0.0.1;dbname=teleinfo');
+define("MYSQL_USER", 'root');
+define("MYSQL_PASSWORD", 'root');
+
+//JSON
+define("SAVE_IN_JSON_FILES", true);
+define("JSON_DIRECTORY", "/tmp/"); //Don't forget trailing slash
+
+//EMONCMS
+define("SAVE_IN_EMONCMS", false); //TODO
+
+//
 //  renvoie une trame teleinfo complete sous forme d'array
 //
 function getTeleinfo () {
 
-    $handle = fopen ('/dev/ttyAMA0', "r"); // ouverture du flux
+    $handle = fopen (TELEINFO_SOURCE, "r"); // ouverture du flux
 
     while (fread($handle, 1) != chr(2)); // on attend la fin d'une trame pour commencer a avec la trame suivante
 
@@ -36,8 +56,9 @@ function getTeleinfo () {
     }
 
 	$datas['timestamp'] = date('Y-m-d H:i:s');
+  $datas['unix_timestamp'] = time();
 
-    return $datas;
+  return $datas;
 
 }
 
@@ -65,34 +86,47 @@ while (!validateTrame($data)) {
 	$data = getTeleinfo();
 }
 
-$db = new PDO('mysql:host=127.0.0.1;dbname=teleinfo', 'root', 'root');
+if (SAVE_IN_MYSQL_DATABASE) {
 
-//Get last row result
-$stmt = $db->prepare("SELECT HCHC, HCHP FROM raw_data ORDER BY id DESC LIMIT 1");
-$stmt->execute();
-$lastRow = $stmt->fetch();
+  $db = new PDO(MYSQL_PDO, MYSQL_USER, MYSQL_PASSWORD);
 
-//Calculate delta
-$data['HCHC_delta'] = $data['HCHC'] - $lastRow['HCHC'];
-$data['HCHP_delta'] = $data['HCHP'] - $lastRow['HCHP'];
+  //Get last row result
+  $stmt = $db->prepare("SELECT HCHC, HCHP FROM raw_data ORDER BY id DESC LIMIT 1");
+  $stmt->execute();
+  $lastRow = $stmt->fetch();
 
-$stmt = $db->prepare("
-  INSERT INTO raw_data(ADCO,OPTARIF,ISOUSC,HCHC,HCHP,PTEC,IINST,IMAX,HHPHC,timestamp,HCHC_delta,HCHP_delta) 
-  VALUES(:ADCO,:OPTARIF,:ISOUSC,:HCHC,:HCHP,:PTEC,:IINST,:IMAX,:HHPHC,:timestamp,:HCHC_delta,:HCHP_delta)
-  ");
-$stmt->execute(
-  array(
-    ':ADCO' => $data['ADCO'], 
-    ':OPTARIF' => $data['OPTARIF'], 
-    ':ISOUSC' => $data['ISOUSC'], 
-    ':HCHC' => $data['HCHC'], 
-    ':HCHP' => $data['HCHP'], 
-    ':PTEC' => $data['PTEC'], 
-    ':IINST' => $data['IINST'], 
-    ':IMAX' => $data['IMAX'], 
-    ':HHPHC' => $data['HHPHC'], 
-    ':timestamp' => $data['timestamp'],
-    ':HCHC_delta' => $data['HCHC_delta'],
-    ':HCHP_delta' => $data['HCHP_delta']
-  )
-);
+  //Calculate delta
+  $data['HCHC_delta'] = $data['HCHC'] - $lastRow['HCHC'];
+  $data['HCHP_delta'] = $data['HCHP'] - $lastRow['HCHP'];
+
+  $stmt = $db->prepare("
+    INSERT INTO raw_data(ADCO,OPTARIF,ISOUSC,HCHC,HCHP,PTEC,IINST,IMAX,HHPHC,timestamp,HCHC_delta,HCHP_delta) 
+    VALUES(:ADCO,:OPTARIF,:ISOUSC,:HCHC,:HCHP,:PTEC,:IINST,:IMAX,:HHPHC,:timestamp,:HCHC_delta,:HCHP_delta)
+    ");
+  $stmt->execute(
+    array(
+      ':ADCO' => $data['ADCO'], 
+      ':OPTARIF' => $data['OPTARIF'], 
+      ':ISOUSC' => $data['ISOUSC'], 
+      ':HCHC' => $data['HCHC'], 
+      ':HCHP' => $data['HCHP'], 
+      ':PTEC' => $data['PTEC'], 
+      ':IINST' => $data['IINST'], 
+      ':IMAX' => $data['IMAX'], 
+      ':HHPHC' => $data['HHPHC'], 
+      ':timestamp' => $data['timestamp'],
+      ':HCHC_delta' => $data['HCHC_delta'],
+      ':HCHP_delta' => $data['HCHP_delta']
+    )
+  );
+}
+
+if (SAVE_IN_JSON_FILES) {
+
+  file_put_contents(JSON_DIRECTORY.$data['unix_timestamp'].'json', json_encode($data));
+
+}
+
+if (SAVE_IN_EMONCMS) {
+  //TODO
+}
